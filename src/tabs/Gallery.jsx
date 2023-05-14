@@ -9,6 +9,7 @@ import {
   Text,
   CardItem,
   Loader,
+  Modal,
 } from 'components';
 import { getImages } from 'service/image-service';
 
@@ -20,6 +21,7 @@ export class Gallery extends Component {
     showLoadMore: false,
     isEmpti: false,
     isLoading: false,
+    largeImage: '',
   };
 
   componentDidUpdate(prevProps, prevState, snapshot) {
@@ -53,8 +55,12 @@ export class Gallery extends Component {
     this.setState(prevState => ({ page: prevState.page + 1 }));
   };
 
+  showModal = url => {
+    this.setState({ largeImage: url });
+  };
+
   render() {
-    const { list, showLoadMore, isEmpti, isLoading } = this.state;
+    const { list, showLoadMore, isEmpti, isLoading, largeImage } = this.state;
     return (
       <>
         <SearchForm onSubmit={this.handleSubmit} />
@@ -62,7 +68,11 @@ export class Gallery extends Component {
           {list.map(({ id, alt, src, avg_color }) => (
             <GridItem key={id}>
               <CardItem color={avg_color}>
-                <img src={src.large} alt={alt} />
+                <img
+                  src={src.large}
+                  alt={alt}
+                  onClick={() => this.showModal(src.large)}
+                />
               </CardItem>
             </GridItem>
           ))}
@@ -74,6 +84,10 @@ export class Gallery extends Component {
           <Text textAlign="center">Sorry. There are no images ... 😭</Text>
         )}
         {isLoading && <Loader />}
+
+        {largeImage && (
+          <Modal onClose={this.showModal} largeImage={largeImage} />
+        )}
       </>
     );
   }

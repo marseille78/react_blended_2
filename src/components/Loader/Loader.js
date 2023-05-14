@@ -1,5 +1,5 @@
 import { ThreeDots } from 'react-loader-spinner';
-import { Backdrop } from './Loader.style';
+import { Backdrop } from 'components';
 
 export const Loader = () => {
   return (
