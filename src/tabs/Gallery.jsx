@@ -1,7 +1,15 @@
 import { Component } from 'react';
 
 import * as ImageService from 'service/image-service';
-import { Button, SearchForm, Grid, GridItem, Text, CardItem } from 'components';
+import {
+  Button,
+  SearchForm,
+  Grid,
+  GridItem,
+  Text,
+  CardItem,
+  Loader,
+} from 'components';
 import { getImages } from 'service/image-service';
 
 export class Gallery extends Component {
@@ -11,21 +19,27 @@ export class Gallery extends Component {
     list: [],
     showLoadMore: false,
     isEmpti: false,
-   };
+    isLoading: false,
+  };
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     const { query, page } = this.state;
 
     if (prevState.query !== query || prevState.page !== page) {
-      getImages(query, page).then(({ photos, total_results }) => {
-        if(!photos.length) {
-          this.setState({isEmpti: true})
-          return
-        }
-        this.setState(({ list }) => ({ list: [...list, ...photos],
-        showLoadMore: page < Math.ceil(total_results/15)
-        }));
-      });
+      this.setState({ isLoading: true });
+      getImages(query, page)
+        .then(({ photos, total_results }) => {
+          if (!photos.length) {
+            this.setState({ isEmpti: true });
+            return;
+          }
+          this.setState(({ list }) => ({
+            list: [...list, ...photos],
+            showLoadMore: page < Math.ceil(total_results / 15),
+            // showLoadMore: photos.length > 0 && total_results > page * 15,
+          }));
+        })
+        .finally(() => this.setState({ isLoading: false }));
     }
   }
 
@@ -35,8 +49,12 @@ export class Gallery extends Component {
     });
   };
 
+  handleLoadMore = () => {
+    this.setState(prevState => ({ page: prevState.page + 1 }));
+  };
+
   render() {
-    const { list, showLoadMore, isEmpti } = this.state;
+    const { list, showLoadMore, isEmpti, isLoading } = this.state;
     return (
       <>
         <SearchForm onSubmit={this.handleSubmit} />
@@ -49,8 +67,13 @@ export class Gallery extends Component {
             </GridItem>
           ))}
         </Grid>
-        {showLoadMore && <Button>Load more</Button>}
-        {isEmpti && <Text textAlign="center">Sorry. There are no images ... 😭</Text>}
+        {showLoadMore && (
+          <Button onClick={this.handleLoadMore}>Load more</Button>
+        )}
+        {isEmpti && (
+          <Text textAlign="center">Sorry. There are no images ... 😭</Text>
+        )}
+        {isLoading && <Loader />}
       </>
     );
   }
